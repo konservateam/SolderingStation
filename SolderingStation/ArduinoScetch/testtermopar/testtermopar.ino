@@ -41,7 +41,6 @@ void setup() {
 
 void loop() {
   //Выводим показания в монитор порта
-  while(1){
   timer2 = millis();
         if (timer2 - timer >= delay_trm) {
           timer = millis();
@@ -59,14 +58,14 @@ void loop() {
           prev_t_bottom = t_bottom;
           if (t_max_top < t_top && t_top > prev_t_top) t_max_top = t_top;
           prev_t_top = t_top;
-          //Serial.print(t_max_bottom);
-          //Serial.print(" ");
-          Serial.println(digitalRead(resetError));
+          Serial.print(t_bottom);
+          Serial.print(" ");
+          Serial.println(t_top);
           //}
         
  //delay(300);
  //Serial.println(timer2);
-  }
+  
 }
 double max6675_read (int ck, int cs, int so) { 
   char i;
