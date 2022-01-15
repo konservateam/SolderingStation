@@ -2,7 +2,7 @@
 
 #define pin_zerro   2       // пин детектора нуля
 #define int_num     0       // соответствующий ему номер прерывания
-#define pin_bottom  12      // управление нижним нагревом
+#define pin_bottom  13      // управление нижним нагревом
 #define pin_top     11      // управление верхним нагревом
 #define thermoDO    5       // * пины термопар
 #define thermoCLK   4       // *
@@ -75,11 +75,11 @@ void loop()
       p_bottom = Serial.parseInt();
       if (p_bottom < 0) p_bottom = 0;
       if (p_bottom > 100) p_bottom = 100;
-      //        timer2 = millis();
+      //        timer2 = millis();*/
       if (counter_trm > delay_trm) {
         counter_trm = 0;
-        t_bottom = max6675_read_temp (thermoCLK, thermoCS_b, thermoDO);
-        t_top = max6675_read_temp (thermoCLK, thermoCS_t, thermoDO);
+        t_bottom = max6675_read (thermoCLK, thermoCS_b, thermoDO);
+        t_top = max6675_read (thermoCLK, thermoCS_t, thermoDO);
       }
       //if (prev_p_bottom != p_bottom || prev_p_top != p_top
         //  || prev_t_bottom != t_bottom || prev_t_top != t_top) {
@@ -88,20 +88,20 @@ void loop()
         prev_p_bottom = p_bottom;
         prev_p_top = p_top;
 
-        if (t_max_bottom != t_bottom && t_bottom > prev_t_bottom ) t_max_bottom = t_bottom;
-        prev_t_bottom = t_bottom;
-        if (t_max_top != t_top && t_top > prev_t_top) t_max_top = t_top;
-        prev_t_top = t_top;
+       // if (t_max_bottom != t_bottom && t_bottom > prev_t_bottom ) t_max_bottom = t_bottom;
+      //  prev_t_bottom = t_bottom;
+      //  if (t_max_top != t_top && t_top > prev_t_top) t_max_top = t_top;
+      //  prev_t_top = t_top;
       //}
     }
   }
-  if (digitalRead(resetError) && ps_error == 1) {
+/* if (digitalRead(resetError) && ps_error == 1) {
     t_max_bottom = t_bottom;
     t_max_top = t_top;
     com_enable = 1;
     ps_error = 0;
     digitalWrite(buzzer, 0);
-  }
+  }*/
 }
 
 // прерывание детектора нуля
@@ -113,11 +113,11 @@ void isr() {
 
 // прерывание таймера
 ISR(TIMER2_A) {
-  if (ps_error == 0 && t_bottom < t_max && t_top < t_max
-                   && t_bottom != 0 && t_top != 0                            // защита от обрыва термопар
-                   && t_bottom - t_top < 10 && t_top - t_bottom < 10         // защита от отвала термопар
-                   && t_max_bottom - t_bottom < 10 && t_max_top - t_max_top < 10
-                   && millis() - timer < period_com) {                       // защита от потери связи с ПК
+ // if (ps_error == 0 && t_bottom < t_max && t_top < t_max
+ //                  && t_bottom != 0 && t_top != 0                            // защита от обрыва термопар
+ //                  && t_bottom - t_top < 10 && t_top - t_bottom < 10         // защита от отвала термопар
+ //                  && t_max_bottom - t_bottom < 10 && t_max_top - t_max_top < 10
+ //                  && millis() - timer < period_com) {                       // защита от потери связи с ПК
     if (p_bottom != 0) {
       if (counter_pwm == p_bottom) digitalWrite(pin_bottom, 1);
       else {
@@ -131,17 +131,17 @@ ISR(TIMER2_A) {
       }
     }
     digitalWrite(buzzer, 0);
-  }
-  else {
-    digitalWrite(pin_bottom, 0);
-    digitalWrite(pin_top, 0);
-    ps_error = 1;
-    digitalWrite(buzzer, 1);
-  }
+  //}
+ // else {
+ //   digitalWrite(pin_bottom, 0);
+ //   digitalWrite(pin_top, 0);
+ //   ps_error = 1;
+ //   digitalWrite(buzzer, 1);
+ // }
   counter_pwm--;
 }
 
-double max6675_read_temp (int ck, int cs, int so) {
+double max6675_read (int ck, int cs, int so) {
   char i;
   int tmp = 0;
   digitalWrite(cs, LOW);//cs = 0;   // Stop a conversion in progress
