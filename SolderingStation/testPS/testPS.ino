@@ -8,14 +8,14 @@
 #define thermoCLK   4       // *
 #define thermoCS_b  6       // *
 #define thermoCS_t  7       // *
-#define resetError  3       // сброс ошибки отвала термопар
+#define resetError  3       // пин кнопки сброса ошибки
 #define buzzer      8       // зуммер аварийной ситуации
 const byte delay_trm = 200; //задержка между опросами термопар(миллисекунды)
 const byte period_int = 37; // 37 мкс - период прерываний для 255 шагов и 50 Гц
 // для 60 Гц - 31
 const unsigned int period_com = 3000; // период после которого отключатся
 //нагреватели без связи с ПК
-const byte t_max = 250;  // максимальная температура 
+const byte t_max = 250;     // максимальная температура 
 
 byte counter_pwm = 0;       // счётчик тактов для реле
 byte counter_trm = 0;       // счётчик тактов для термопар
@@ -27,8 +27,8 @@ byte prev_p_top, prev_p_bottom; //предыдущая уставка мощно
 int prev_t_top, prev_t_bottom; //предыдущие показания температуры
 int t_max_bottom, t_max_top;
 unsigned long int timer;    //предыдущее время подключения к ПК
-byte ps_error;
-byte com_enable;
+byte ps_error;              //флаг ошибки
+byte com_enable;            //флаг подключения к ПК
 
 char buf[32];
 
