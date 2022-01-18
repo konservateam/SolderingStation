@@ -1,15 +1,15 @@
 #include <GyverTimers.h>    // библиотека таймера
 
-#define pin_zerro   2       // пин детектора нуля
-#define int_num     0       // соответствующий ему номер прерывания
-#define pin_bottom  13      // управление нижним нагревом
-#define pin_top     11      // управление верхним нагревом
-#define thermoDO    5       // * пины термопар
-#define thermoCLK   4       // *
-#define thermoCS_b  6       // *
-#define thermoCS_t  7       // *
-#define resetError  3       // пин кнопки сброса ошибки
-#define buzzer      8       // зуммер аварийной ситуации
+#define pin_zerro   2   //2       // пин детектора нуля
+#define int_num     0   //0       // соответствующий ему номер прерывания
+#define pin_bottom  5   //13      // управление нижним нагревом
+#define pin_top     6   //11      // управление верхним нагревом
+#define thermoSO    12  //5       // * so пины термопар
+#define thermoSCK   11  //4       // * sck
+#define thermoCS_b  10  //6       // *
+#define thermoCS_t  9   //7       // *
+#define resetError  4   //3       // пин кнопки сброса ошибки
+#define buzzer      3   //8       // зуммер аварийной ситуации
 const byte delay_trm = 200; //задержка между опросами термопар(миллисекунды)
 const byte period_int = 37; // 37 мкс - период прерываний для 255 шагов и 50 Гц
 // для 60 Гц - 31
@@ -37,8 +37,8 @@ void setup()
   Serial.begin(9600);
   pinMode(thermoCS_b, OUTPUT);
   pinMode(thermoCS_t, OUTPUT);
-  pinMode(thermoCLK, OUTPUT);
-  pinMode(thermoDO, INPUT);
+  pinMode(thermoSCK, OUTPUT);
+  pinMode(thermoSO, INPUT);
   pinMode(pin_top, OUTPUT);
   digitalWrite(pin_top, 0);
   pinMode(pin_bottom, OUTPUT);
@@ -76,11 +76,11 @@ void loop()
       if (p_bottom < 0) p_bottom = 0;
       if (p_bottom > 100) p_bottom = 100;
       //        timer2 = millis();*/
-      if (counter_trm > delay_trm) {
-        counter_trm = 0;
-        t_bottom = max6675_read (thermoCLK, thermoCS_b, thermoDO);
-        t_top = max6675_read (thermoCLK, thermoCS_t, thermoDO);
-      }
+      //if (counter_trm > delay_trm) {
+      //  counter_trm = 0;
+        t_bottom = max6675_read (thermoSCK, thermoCS_b, thermoSO);
+        t_top = max6675_read (thermoSCK, thermoCS_t, thermoSO);
+      //}
       //if (prev_p_bottom != p_bottom || prev_p_top != p_top
         //  || prev_t_bottom != t_bottom || prev_t_top != t_top) {
         sprintf (buf, "OK%03d%03d%03d%03d\r\n", p_top, p_bottom, t_top, t_bottom);
@@ -141,16 +141,16 @@ ISR(TIMER2_A) {
   counter_pwm--;
 }
 
-double max6675_read (int ck, int cs, int so) {
+double max6675_read (int sck, int cs, int so) {
   char i;
   int tmp = 0;
   digitalWrite(cs, LOW);//cs = 0;   // Stop a conversion in progress
   asm volatile (" nop"        "\n\t");
   for (i = 15 ; i >= 0 ; i--) {
-    digitalWrite(ck, HIGH);
+    digitalWrite(sck, HIGH);
     asm volatile (" nop"        "\n\t");
     if (digitalRead(so)) tmp |= (1 << i);
-    digitalWrite(ck, LOW);
+    digitalWrite(sck, LOW);
     asm volatile (" nop"        "\n\t");
   }
   digitalWrite(cs, HIGH);
