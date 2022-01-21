@@ -3,15 +3,15 @@
 #define pin_zerro   2   //2       // пин детектора нуля
 #define int_num     0   //0       // соответствующий ему номер прерывания
 #define pin_bottom  5   //13      // управление нижним нагревом
-#define pin_top     6   //11      // управление верхним нагревом
-#define thermoSO    12  //5       // * so пины термопар
-#define thermoSCK   11  //4       // * sck
-#define thermoCS_b  10  //6       // *
-#define thermoCS_t  9   //7       // *
-#define resetError  4   //3       // пин кнопки сброса ошибки
-#define buzzer      3   //8       // зуммер аварийной ситуации
+#define pin_top     3   //11      // управление верхним нагревом
+#define thermoSO    6   //5       // * so пины термопар
+#define thermoSCK   8   //4       // * sck
+#define thermoCS_b  9   //6       // *
+#define thermoCS_t  10  //7       // *
+#define resetError  11  //3       // пин кнопки сброса ошибки
+#define buzzer      4   //8       // зуммер аварийной ситуации
 const byte delay_trm = 200; //задержка между опросами термопар(миллисекунды)
-const byte period_int = 37; // 37 мкс - период прерываний для 255 шагов и 50 Гц
+const byte period_int = 31; // 37 мкс - период прерываний для 255 шагов и 50 Гц
 // для 60 Гц - 31
 const unsigned int period_com = 3000; // период после которого отключатся
 //нагреватели без связи с ПК
@@ -26,7 +26,7 @@ int t_top, t_bottom;        //текущие показания температ
 byte prev_p_top, prev_p_bottom; //предыдущая уставка мощности
 int prev_t_top, prev_t_bottom; //предыдущие показания температуры
 int t_max_bottom, t_max_top;
-unsigned long int timer;    //предыдущее время подключения к ПК
+unsigned long int timer, timer2;    //предыдущее время подключения к ПК
 byte ps_error;              //флаг ошибки
 byte com_enable;            //флаг подключения к ПК
 
@@ -75,24 +75,24 @@ void loop()
       p_bottom = Serial.parseInt();
       if (p_bottom < 0) p_bottom = 0;
       if (p_bottom > 100) p_bottom = 100;
-      //        timer2 = millis();*/
-      //if (counter_trm > delay_trm) {
-      //  counter_trm = 0;
+      //timer2 = millis();
+      if (counter_trm > delay_trm) {
+        counter_trm = 0;
         t_bottom = max6675_read (thermoSCK, thermoCS_b, thermoSO);
         t_top = max6675_read (thermoSCK, thermoCS_t, thermoSO);
-      //}
-      //if (prev_p_bottom != p_bottom || prev_p_top != p_top
-        //  || prev_t_bottom != t_bottom || prev_t_top != t_top) {
+      }
+      if (prev_p_bottom != p_bottom || prev_p_top != p_top
+          || prev_t_bottom != t_bottom || prev_t_top != t_top) {
         sprintf (buf, "OK%03d%03d%03d%03d\r\n", p_top, p_bottom, t_top, t_bottom);
         Serial.print(buf);
         prev_p_bottom = p_bottom;
         prev_p_top = p_top;
 
-       // if (t_max_bottom != t_bottom && t_bottom > prev_t_bottom ) t_max_bottom = t_bottom;
-      //  prev_t_bottom = t_bottom;
-      //  if (t_max_top != t_top && t_top > prev_t_top) t_max_top = t_top;
-      //  prev_t_top = t_top;
-      //}
+        if (t_max_bottom != t_bottom && t_bottom > prev_t_bottom ) t_max_bottom = t_bottom;
+        prev_t_bottom = t_bottom;
+        if (t_max_top != t_top && t_top > prev_t_top) t_max_top = t_top;
+        prev_t_top = t_top;
+      }
     }
   }
 /* if (digitalRead(resetError) && ps_error == 1) {
@@ -113,11 +113,13 @@ void isr() {
 
 // прерывание таймера
 ISR(TIMER2_A) {
- // if (ps_error == 0 && t_bottom < t_max && t_top < t_max
- //                  && t_bottom != 0 && t_top != 0                            // защита от обрыва термопар
- //                  && t_bottom - t_top < 10 && t_top - t_bottom < 10         // защита от отвала термопар
- //                  && t_max_bottom - t_bottom < 10 && t_max_top - t_max_top < 10
- //                  && millis() - timer < period_com) {                       // защита от потери связи с ПК
+  /*if (ps_error == 0 && t_bottom < t_max && t_top < t_max
+                   && t_bottom != 0 && t_top != 0                            // защита от обрыва термопар
+                   && t_bottom - t_top < 10 && t_top - t_bottom < 10         // защита от отвала термопар
+                   && t_max_bottom - t_bottom < 10 && t_max_top - t_max_top < 10
+                   && millis() - timer < period_com) { */ // защита от потери связи с ПК
+    if (ps_error == 0) {
+     if  (millis() - timer <= period_com){
     if (p_bottom != 0) {
       if (counter_pwm == p_bottom) digitalWrite(pin_bottom, 1);
       else {
@@ -131,14 +133,16 @@ ISR(TIMER2_A) {
       }
     }
     digitalWrite(buzzer, 0);
-  //}
- // else {
- //   digitalWrite(pin_bottom, 0);
- //   digitalWrite(pin_top, 0);
- //   ps_error = 1;
- //   digitalWrite(buzzer, 1);
- // }
+  }}
+  else {
+    digitalWrite(pin_bottom, 0);
+    digitalWrite(pin_top, 0);
+    ps_error = 1;
+    digitalWrite(buzzer, 1);
+  
+    }
   counter_pwm--;
+    
 }
 
 double max6675_read (int sck, int cs, int so) {

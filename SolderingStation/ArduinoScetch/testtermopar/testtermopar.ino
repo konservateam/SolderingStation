@@ -4,14 +4,15 @@
 //int thermoCS1 =6;
 //int thermoCS2 =7;
 //int thermoCLK = 4;  //он же SCK
-#define thermoDO    5   // * пины термопар
-#define thermoCLK   4   // *
-#define thermoCS_b  6   // *
-#define thermoCS_t  7   // *
+#define thermoDO    6   // * пины термопар
+#define thermoCLK   8   // *
+#define thermoCS_b  9   // *
+#define thermoCS_t  10   // *
+#define thermoCS_c  7   // *
 #define delay_trm   200 //задержка между опросами термопар(миллисекунды)
 #define resetError  3
 
-int t_top, t_bottom;  //текущие показания температуры
+int t_top, t_bottom, t_c;  //текущие показания температуры
 unsigned long int timer; //предыдущее время опроса термодатчиков
 unsigned long int timer2;
 int prev_t_top, prev_t_bottom; //предыдущие показания температуры
@@ -23,6 +24,7 @@ void setup() {
   Serial.begin(9600);
   pinMode(thermoCS_b, OUTPUT);
   pinMode(thermoCS_t, OUTPUT);
+  pinMode(thermoCS_c, OUTPUT);
   pinMode(thermoCLK, OUTPUT);
   pinMode(thermoDO, INPUT);
    pinMode(resetError, INPUT);
@@ -46,7 +48,7 @@ void loop() {
           timer = millis();
           t_bottom = max6675_read (thermoCLK, thermoCS_b, thermoDO);
           t_top = max6675_read (thermoCLK, thermoCS_t, thermoDO);
-          
+          t_c = max6675_read (thermoCLK, thermoCS_c, thermoDO);
           //Serial.println(t_top);
           }
          // if( prev_t_bottom != t_bottom || prev_t_top != t_top) {
@@ -59,6 +61,8 @@ void loop() {
           if (t_max_top < t_top && t_top > prev_t_top) t_max_top = t_top;
           prev_t_top = t_top;
           Serial.print(t_bottom);
+          Serial.print(" ");
+          Serial.print(t_c);
           Serial.print(" ");
           Serial.println(t_top);
           //}
