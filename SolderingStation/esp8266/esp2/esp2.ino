@@ -108,7 +108,7 @@ String SendHTML(uint8_t led1stat)
   ptr +="</head>\n";
   ptr +="<body>\n";
   ptr +="<h1>ESP8266 Web Server</h1>\n";
-  ptr +="<h3>Using Access Point(AP) Mode</h3>\n";
+  ptr +="<h3>Используется в режиме точки доступа</h3>\n";
   
   if(led1stat)
     ptr +="<p>LED1 Status: ON</p><a class=\"button button-off\" href=\"/led1off\">OFF</a>\n";
