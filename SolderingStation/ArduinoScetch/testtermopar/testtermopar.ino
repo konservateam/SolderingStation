@@ -1,16 +1,16 @@
-//#include "max6675.h"
+#include "max6675.h"
 
 //int thermoDO = 5;  //он же SO
 //int thermoCS1 =6;
 //int thermoCS2 =7;
 //int thermoCLK = 4;  //он же SCK
-#define thermoDO    6   // * пины термопар
-#define thermoCLK   8   // *
-#define thermoCS_b  9   // *
-#define thermoCS_t  10   // *
-#define thermoCS_c  7   // *
-#define delay_trm   200 //задержка между опросами термопар(миллисекунды)
-#define resetError  3
+#define thermoDO    13   // * пины термопар13
+#define thermoCLK   14   // *14
+#define thermoCS_b  12   // *12
+//#define thermoCS_t  10   // *
+//#define thermoCS_c  7   // *
+#define delay_trm   2000 //задержка между опросами термопар(миллисекунды)
+//#define resetError  3
 
 int t_top, t_bottom, t_c;  //текущие показания температуры
 unsigned long int timer; //предыдущее время опроса термодатчиков
@@ -19,15 +19,16 @@ int prev_t_top, prev_t_bottom; //предыдущие показания тем�
 int t_max_bottom, t_max_top; 
 //int vccPin = 5;  //пин для питания
 //int gndPin = 6;  //пин для земли
+MAX6675 max6675_read (thermoCLK, thermoCS_b, thermoDO);
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
   pinMode(thermoCS_b, OUTPUT);
-  pinMode(thermoCS_t, OUTPUT);
-  pinMode(thermoCS_c, OUTPUT);
+//  pinMode(thermoCS_t, OUTPUT);
+//  pinMode(thermoCS_c, OUTPUT);
   pinMode(thermoCLK, OUTPUT);
   pinMode(thermoDO, INPUT);
-   pinMode(resetError, INPUT);
+//   pinMode(resetError, INPUT);
 //  thermoCLK, thermoCS_b,thermoCS_t, thermoDO  = 0;
   t_top, t_bottom = 0;
   timer, timer2 = 0;
@@ -46,9 +47,10 @@ void loop() {
   timer2 = millis();
         if (timer2 - timer >= delay_trm) {
           timer = millis();
-          t_bottom = max6675_read (thermoCLK, thermoCS_b, thermoDO);
-          t_top = max6675_read (thermoCLK, thermoCS_t, thermoDO);
-          t_c = max6675_read (thermoCLK, thermoCS_c, thermoDO);
+//          t_bottom = max6675_read (thermoCLK, thermoCS_b, thermoDO);
+          t_bottom = max6675_read.readCelsius();
+//          t_top = max6675_read (thermoCLK, thermoCS_t, thermoDO);
+//          t_c = max6675_read (thermoCLK, thermoCS_c, thermoDO);
           //Serial.println(t_top);
           }
          // if( prev_t_bottom != t_bottom || prev_t_top != t_top) {
@@ -71,21 +73,22 @@ void loop() {
  //Serial.println(timer2);
   
 }
+/*
 double max6675_read (int ck, int cs, int so) { 
   char i;
   int tmp = 0;
   digitalWrite(cs, LOW);//cs = 0;   // Stop a conversion in progress
   asm volatile (" nop"        "\n\t");
-  for (i=15 ; i>=0 ;i--) {
+  //for (i=0 ; i>=0 ;i--) {
     digitalWrite(ck, HIGH);
     asm volatile (" nop"        "\n\t");
     if (digitalRead(so)) tmp|=(1<<i);
     digitalWrite(ck, LOW);
     asm volatile (" nop"        "\n\t");
-  }
+  //}
   digitalWrite(cs, HIGH);
   if (tmp & 0x4) {
     return NAN;
   } else
     return ((tmp>>3))*0.25;
-}
+}*/
